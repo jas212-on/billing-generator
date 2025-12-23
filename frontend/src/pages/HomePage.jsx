@@ -1,10 +1,8 @@
-import React, { useContext, useState } from "react";
-import { Plus, Trash2, Menu, Ticket, Check } from "lucide-react";
-import { GlobalContext } from "../GlobalContext";
-import NavigationBar from "../components/navigationBar";
+import React, { useState } from "react";
+import { Plus, Trash2, Check } from "lucide-react";
 
 export default function BillingHome() {
-  const { products, setProducts } = useContext(GlobalContext);
+  const [products, setProducts] = useState([]);
   const [labourCharges, setLabourCharges] = useState([]);
   const [customerName, setCustomerName] = useState("");
   const [currentProduct, setCurrentProduct] = useState({
@@ -25,6 +23,7 @@ export default function BillingHome() {
     name: "",
     cost: null,
   });
+  const [paymentMode, setPaymentMode] = useState();
 
   const addProduct = () => {
     if (
@@ -428,8 +427,50 @@ export default function BillingHome() {
             </div>
 
             {/*** Right Column - Pay now buttons */}
-            {(addedProducts.length > 0 ||
-              labourCharges.length > 0) && (
+            {(addedProducts.length > 0 || labourCharges.length > 0) && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-lg shadow-sm p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                    Mode of Payment
+                  </h2>
+                  <div className="space-y-3">
+                    <label className="flex items-center p-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                      <input
+                        type="radio"
+                        name="payment"
+                        id="cash"
+                        value="cash"
+                        className="w-4 h-4"
+                        onChange={(e)=>setPaymentMode(e.target.value)}
+                      />
+                      <span className="ml-3 text-gray-700">Cash</span>
+                    </label>
+
+                    <label className="flex items-center p-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                      <input
+                        type="radio"
+                        name="payment"
+                        id="card"
+                        value="card"
+                        className="w-4 h-4"
+                        onChange={(e)=>setPaymentMode(e.target.value)}
+                      />
+                      <span className="ml-3 text-gray-700">Card</span>
+                    </label>
+
+                    <label className="flex items-center p-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                      <input
+                        type="radio"
+                        name="payment"
+                        id="upi"
+                        value="upi"
+                        className="w-4 h-4"
+                        onChange={(e)=>setPaymentMode(e.target.value)}
+                      />
+                      <span className="ml-3 text-gray-700">UPI</span>
+                    </label>
+                  </div>
+                </div>
                 <div className="flex flex-row justify-center items-center gap-4 w-full">
                   <button className="px-6 py-2 w-full bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors">
                     Pay now
@@ -438,7 +479,8 @@ export default function BillingHome() {
                     Pay later
                   </button>
                 </div>
-              )}
+              </div>
+            )}
           </div>
         </div>
       </main>

@@ -1,46 +1,100 @@
-import React, { useContext, useState } from "react";
-import { Plus, Trash2, Edit2, Menu, Search } from "lucide-react";
-import { GlobalContext } from "../GlobalContext";
+import React, { useState, useEffect } from "react";
+import {
+  Plus,
+  Trash2,
+  Edit2,
+  Menu,
+  Search,
+  Loader,
+  Loader2,
+} from "lucide-react";
+import { axiosInstance } from "../lib/axios";
 
 export default function ProductManagement() {
-  const {products, setProducts} = useContext(GlobalContext);
+  const [products, setProducts] = useState([]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [editingId, setEditingId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   const [formData, setFormData] = useState({
     name: "",
     price: 0,
   });
 
-  const handleSubmit = () => {
-    if (editingId) {
-      setProducts(
-        products.map((p) =>
-          p.id === editingId ? { ...formData, id: editingId } : p
-        )
-      );
-      setEditingId(null);
-    } else {
-      if (formData.name && formData.price > 0) {
-        setProducts([...products, { ...formData, id: Date.now() }]);
+  const [isProductsLoading, setIsProductsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [isDeleteLoading, setIsDeleteLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setIsProductsLoading(true);
+        const response = await axiosInstance.get("/products/get-products");
+        setProducts(response.data);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsProductsLoading(false);
       }
+    };
+    fetchProducts();
+  }, []);
+
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
+      if (formData.name && formData.price) {
+        if (editingId) {
+          await axiosInstance.put(
+            `/products/update-product/${editingId}`,
+            formData
+          );
+          setProducts(
+            products.map((p) =>
+              p._id === editingId ? { ...formData, _id: editingId } : p
+            )
+          );
+          setEditingId(null);
+        } else {
+          const response = await axiosInstance.post(
+            "/products/add-product",
+            formData
+          );
+          if (formData.name && formData.price > 0) {
+            setProducts([...products, { ...formData, id: response.data._id }]);
+          }
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
     }
 
     setFormData({ name: "", price: 0, category: "", stock: 0 });
   };
 
-  const handleEdit = (product,idx) => {
+  const handleEdit = (product, id) => {
     setFormData({
       name: product.name,
       price: product.price,
     });
-    setEditingId(idx);
+    setEditingId(id);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleDelete = (id) => {
-    setProducts(products.filter((p) => p.id !== id));
+  const handleDelete = async (id) => {
+    try {
+      setIsDeleteLoading(true);
+      await axiosInstance.delete(`/products/delete-product/${id}`);
+      setProducts(products.filter((p) => p.id !== id));
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsDeleteLoading(false);
+      setDeletingId(null);
+    }
   };
 
   const handleCancel = () => {
@@ -60,7 +114,6 @@ export default function ProductManagement() {
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-center items-center h-16">
-
             <h1 className="text-xl font-semibold text-gray-900">
               Product Management
             </h1>
@@ -118,17 +171,25 @@ export default function ProductManagement() {
             <div className="flex gap-3">
               <button
                 onClick={handleSubmit}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                className={`flex-1 ${loading ? "bg-blue-300 hover:bg-blue-400 cursor-not-allowed hover:cursor-not-allowed  " : "bg-blue-600 hover:bg-blue-700"} cursor-pointer  text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors`}
               >
                 {editingId ? (
                   <>
-                    <Edit2 className="w-5 h-5" />
-                    Update Product
+                    {loading ? (
+                      <Loader className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Edit2 className="w-5 h-5" />
+                    )}
+                    {loading ? "Updating.." : "Update Product"}
                   </>
                 ) : (
                   <>
-                    <Plus className="w-5 h-5" />
-                    Add Product
+                    {loading ? (
+                      <Loader className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Plus className="w-5 h-5" />
+                    )}
+                    {loading ? "Saving" : "Add product"}
                   </>
                 )}
               </button>
@@ -181,7 +242,13 @@ export default function ProductManagement() {
                 </tr>
               </thead>
               <tbody>
-                {filteredProducts.length === 0 ? (
+                {isProductsLoading ? (
+                  <tr>
+                    <td colSpan="3" className="text-center py-8 text-gray-400">
+                      Loading products...
+                    </td>
+                  </tr>
+                ) : filteredProducts.length === 0 ? (
                   <tr>
                     <td colSpan="3" className="text-center py-8 text-gray-400">
                       {searchTerm
@@ -190,9 +257,9 @@ export default function ProductManagement() {
                     </td>
                   </tr>
                 ) : (
-                  filteredProducts.map((product,idx) => (
+                  filteredProducts.map((product) => (
                     <tr
-                      key={idx}
+                      key={product._id}
                       className="border-b border-gray-100 hover:bg-gray-50"
                     >
                       <td className="py-4 px-4">
@@ -206,16 +273,23 @@ export default function ProductManagement() {
                       <td className="py-4 px-4">
                         <div className="flex justify-end gap-2">
                           <button
-                            onClick={() => handleEdit(product,idx)}
+                            onClick={() => handleEdit(product, product._id)}
                             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleDelete(product.id)}
+                            onClick={() => {
+                              setDeletingId(product._id);
+                              handleDelete(product._id);
+                            }}
                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            {isDeleteLoading && deletingId === product._id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
                           </button>
                         </div>
                       </td>
@@ -235,7 +309,7 @@ export default function ProductManagement() {
             ) : (
               filteredProducts.map((product) => (
                 <div
-                  key={product.id}
+                  key={product._id}
                   className="border border-gray-200 rounded-lg p-4"
                 >
                   <div className="flex justify-between items-start mb-3">
@@ -252,7 +326,7 @@ export default function ProductManagement() {
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleDelete(product.id)}
+                        onClick={() => handleDelete(product._id)}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -265,7 +339,7 @@ export default function ProductManagement() {
                       <span className="font-semibold text-gray-900">
                         ₹{product.price.toFixed(2)}
                       </span>
-                    </span>     
+                    </span>
                   </div>
                 </div>
               ))
