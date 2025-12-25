@@ -3,6 +3,7 @@ import ProductManagement from './pages/AddProduct'
 import BillingHome from './pages/HomePage'
 import Layout from './Layout'
 import HistoryPage from './pages/HistoryPage'
+import InsightsPage from './pages/InsightsPage'
 
 function App() {
 
@@ -12,6 +13,7 @@ function App() {
       <Route path="/" element={<BillingHome />}/>
       <Route path="/add-product" element={<ProductManagement />}/>
       <Route path="/history" element={<HistoryPage />}/>
+      <Route path="/insights" element={<InsightsPage/>}/>
       </Route>
     </Routes>
   )

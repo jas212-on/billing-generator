@@ -1,8 +1,29 @@
 import { X, Download, User, Mail, Phone, CheckCircle } from 'lucide-react';
+import axiosInstance from '../lib/axios';
 
 // Bill Details Modal Component
 const BillDetailsModal = ({ isOpen, onClose, bill }) => {
   if (!isOpen || !bill) return null;
+
+  const subTotal = bill.items_detail.reduce(
+      (sum, p) => sum + p.quantity * p.rate,
+      0
+    );
+    const labourTotal = bill.labourCharges.reduce(
+      (sum, l) => sum + parseFloat(l.cost),
+      0
+    );
+
+    const handlePay = async(billId) => {
+      try {
+        console.log(billId)
+        const response = await axiosInstance.put(`/bills/update-bill/${billId}`);
+        alert("Bill paid successfully");
+        onClose();
+      } catch (error) {
+        console.log(error);
+      }
+    };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -15,7 +36,7 @@ const BillDetailsModal = ({ isOpen, onClose, bill }) => {
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-gray-900">Bill Details</h2>
-            <p className="text-sm text-gray-500 mt-1">{bill.id}</p>
+            <p className="text-sm text-gray-500 mt-1">{bill._id}</p>
           </div>
           <button
             onClick={onClose}
@@ -89,9 +110,9 @@ const BillDetailsModal = ({ isOpen, onClose, bill }) => {
                     <tr key={index}>
                       <td className="py-3 px-4 text-sm text-gray-900">{item.name}</td>
                       <td className="py-3 px-4 text-sm text-gray-600 text-center">{item.quantity}</td>
-                      <td className="py-3 px-4 text-sm text-gray-600 text-right">₹{item.price.toFixed(2)}</td>
+                      <td className="py-3 px-4 text-sm text-gray-600 text-right">₹{item.rate.toFixed(2)}</td>
                       <td className="py-3 px-4 text-sm font-medium text-gray-900 text-right">
-                        ₹{(item.quantity * item.price).toFixed(2)}
+                        ₹{(item.quantity * item.rate).toFixed(2)}
                       </td>
                     </tr>
                   ))}
@@ -134,13 +155,13 @@ const BillDetailsModal = ({ isOpen, onClose, bill }) => {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Subtotal</span>
-                <span className="text-gray-900">₹{bill.subtotal?.toFixed(2) || bill.amount.toFixed(2)}</span>
+                <span className="text-gray-900">₹{subTotal.toFixed(2)}</span>
               </div>
               {bill.labourCharges && bill.labourCharges.length > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Labour Charges</span>
                   <span className="text-gray-900">
-                    ₹{bill.labourCharges.reduce((sum, l) => sum + l.cost, 0).toFixed(2)}
+                    ₹{labourTotal.toFixed(2)}
                   </span>
                 </div>
               )}
@@ -162,6 +183,7 @@ const BillDetailsModal = ({ isOpen, onClose, bill }) => {
           </button>
           {bill.status === 'unpaid' && (
             <button
+            onClick={()=>handlePay(bill._id)}
               className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium flex items-center gap-2"
             >
               <CheckCircle className="w-4 h-4" />

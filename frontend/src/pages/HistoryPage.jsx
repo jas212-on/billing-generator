@@ -1,189 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, Package, Clock, Filter } from "lucide-react";
 import BillDetailsModal from "../components/BillDetailsModal";
+import axiosInstance from "../lib/axios";
 
 export default function HistoryPage() {
   const [selectedBill, setSelectedBill] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  const [bills] = useState([
-    {
-      id: 'BL-001',
-      date: '2024-12-20',
-      customerName: 'Rajesh Kumar',
-      email: 'rajesh.kumar@example.com',
-      phone: '+91 98765 43210',
-      items: 5,
-      amount: 1250.00,
-      status: 'paid',
-      items_detail: [
-        { name: 'Prince Biscuit', quantity: 10, price: 10 },
-        { name: 'Parle-G', quantity: 20, price: 5 },
-        { name: 'Britannia Marie', quantity: 5, price: 25 },
-        { name: 'Good Day', quantity: 8, price: 15 },
-        { name: 'Hide & Seek', quantity: 6, price: 20 }
-      ],
-      labourCharges: [
-        { name: 'Packaging', cost: 50 },
-        { name: 'Delivery', cost: 100 }
-      ],
-      subtotal: 1100
-    },
-    {
-      id: 'BL-002',
-      date: '2024-12-19',
-      customerName: 'Priya Sharma',
-      email: 'priya.sharma@example.com',
-      phone: '+91 98765 43211',
-      items: 3,
-      amount: 850.50,
-      status: 'unpaid',
-      items_detail: [
-        { name: 'Maggi', quantity: 20, price: 12 },
-        { name: 'Bru Coffee', quantity: 5, price: 85 },
-        { name: 'Dairy Milk', quantity: 10, price: 35 }
-      ],
-      labourCharges: [
-        { name: 'Handling', cost: 25.50 }
-      ],
-      subtotal: 825
-    },
-    {
-      id: 'BL-003',
-      date: '2024-12-19',
-      customerName: 'Amit Patel',
-      email: 'amit.patel@example.com',
-      phone: '+91 98765 43212',
-      items: 8,
-      amount: 2100.00,
-      status: 'paid',
-      items_detail: [
-        { name: 'Amul Butter', quantity: 10, price: 50 },
-        { name: 'Bread', quantity: 15, price: 40 },
-        { name: 'Milk', quantity: 20, price: 25 },
-        { name: 'Eggs', quantity: 30, price: 6 },
-        { name: 'Cheese', quantity: 5, price: 80 },
-        { name: 'Yogurt', quantity: 10, price: 15 },
-        { name: 'Jam', quantity: 8, price: 60 },
-        { name: 'Honey', quantity: 4, price: 120 }
-      ],
-      labourCharges: [
-        { name: 'Cold Storage', cost: 150 }
-      ],
-      subtotal: 1950
-    },
-    {
-      id: 'BL-004',
-      date: '2024-12-18',
-      customerName: 'Sneha Reddy',
-      email: 'sneha.reddy@example.com',
-      phone: '+91 98765 43213',
-      items: 2,
-      amount: 450.00,
-      status: 'unpaid',
-      items_detail: [
-        { name: 'Coca Cola', quantity: 12, price: 20 },
-        { name: 'Lays Chips', quantity: 15, price: 10 }
-      ],
-      labourCharges: [],
-      subtotal: 450
-    },
-    {
-      id: 'BL-005',
-      date: '2024-12-18',
-      customerName: 'Vikram Singh',
-      email: 'vikram.singh@example.com',
-      phone: '+91 98765 43214',
-      items: 6,
-      amount: 1680.75,
-      status: 'paid',
-      items_detail: [
-        { name: 'Basmati Rice', quantity: 10, price: 80 },
-        { name: 'Pulses', quantity: 5, price: 120 },
-        { name: 'Oil', quantity: 8, price: 150 },
-        { name: 'Sugar', quantity: 10, price: 40 },
-        { name: 'Salt', quantity: 5, price: 20 },
-        { name: 'Spices Mix', quantity: 3, price: 95 }
-      ],
-      labourCharges: [
-        { name: 'Heavy Item Handling', cost: 75.75 }
-      ],
-      subtotal: 1605
-    },
-    {
-      id: 'BL-006',
-      date: '2024-12-17',
-      customerName: 'Anita Desai',
-      email: 'anita.desai@example.com',
-      phone: '+91 98765 43215',
-      items: 4,
-      amount: 920.00,
-      status: 'unpaid',
-      items_detail: [
-        { name: 'Cookies', quantity: 12, price: 30 },
-        { name: 'Cake', quantity: 2, price: 250 },
-        { name: 'Pastries', quantity: 8, price: 35 },
-        { name: 'Brownies', quantity: 6, price: 25 }
-      ],
-      labourCharges: [
-        { name: 'Fragile Packaging', cost: 70 }
-      ],
-      subtotal: 850
-    },
-    {
-      id: 'BL-007',
-      date: '2024-12-17',
-      customerName: 'Rahul Mehta',
-      email: 'rahul.mehta@example.com',
-      phone: '+91 98765 43216',
-      items: 10,
-      amount: 3200.00,
-      status: 'paid',
-      items_detail: [
-        { name: 'Washing Powder', quantity: 5, price: 250 },
-        { name: 'Soap', quantity: 20, price: 30 },
-        { name: 'Shampoo', quantity: 8, price: 150 },
-        { name: 'Toothpaste', quantity: 10, price: 50 },
-        { name: 'Detergent', quantity: 6, price: 200 },
-        { name: 'Floor Cleaner', quantity: 4, price: 120 },
-        { name: 'Dish Wash', quantity: 8, price: 80 },
-        { name: 'Toilet Cleaner', quantity: 5, price: 90 },
-        { name: 'Air Freshener', quantity: 6, price: 75 },
-        { name: 'Napkins', quantity: 10, price: 45 }
-      ],
-      labourCharges: [
-        { name: 'Bulk Order Discount', cost: -100 },
-        { name: 'Express Delivery', cost: 200 }
-      ],
-      subtotal: 3100
-    },
-    {
-      id: 'BL-008',
-      date: '2024-12-16',
-      customerName: 'Kavita Nair',
-      email: 'kavita.nair@example.com',
-      phone: '+91 98765 43217',
-      items: 3,
-      amount: 675.50,
-      status: 'unpaid',
-      items_detail: [
-        { name: 'Green Tea', quantity: 10, price: 45 },
-        { name: 'Honey', quantity: 3, price: 120 },
-        { name: 'Oats', quantity: 5, price: 55 }
-      ],
-      labourCharges: [
-        { name: 'Gift Wrapping', cost: 50.50 }
-      ],
-      subtotal: 625
-    }
-  ]);
+  const [bills,setBills] = useState([]);
+
+  const [loading,setLoading] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
 
   const filteredBills = bills.filter((bill) => {
     const matchesSearch =
-      bill.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bill._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       bill.customerName.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesFilter =
@@ -191,6 +24,21 @@ export default function HistoryPage() {
 
     return matchesSearch && matchesFilter;
   });
+
+  useEffect(()=>{
+    const fetchBills = async () => {
+      try {
+        setLoading(true);
+        const response = await axiosInstance.get("/bills/get-bills");
+        setBills(response.data);
+      } catch (error) {
+        console.log(error);
+      } finally{
+        setLoading(false);
+      }
+    };
+    fetchBills();
+  },[])
 
    const handleViewDetails = (bill) => {
     setSelectedBill(bill);
@@ -210,8 +58,8 @@ export default function HistoryPage() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center items-center h-16">
-            <h1 className="text-xl font-semibold text-gray-900">History</h1>
+          <div className="flex justify-center items-center h-4 lg:h-16">
+            <h1 className="text-xl fixed top-3 lg:top-0 lg:relative font-semibold text-gray-900">History</h1>
             <div className="w-10"></div>
           </div>
         </div>
@@ -334,22 +182,29 @@ export default function HistoryPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredBills.length === 0 ? (
+              {loading ? (
+                <tr>
+                    <td colSpan="7" className="text-center py-8 text-gray-400">
+                      Loading products...
+                    </td>
+                  </tr>
+              ):
+                filteredBills.length === 0 ? (
                 <tr>
                   <td colSpan="6  " className="text-center py-8 text-gray-400">
                     No bills found
                   </td>
                 </tr>
               ) : (
-                filteredBills.map((bill) => (
+                filteredBills.map((bill,idx) => (
                   <tr
-                    key={bill.id}
+                    key={bill._id}
                     className="border-b border-gray-100 hover:bg-gray-50"
                     onClick={() => handleViewDetails(bill)}
                   >
                     <td className="py-4 px-4">
                       <span className="font-medium text-blue-600">
-                        {bill.id}
+                        {idx+1}
                       </span>
                     </td>
                     <td className="py-4 px-4 text-gray-700">
@@ -388,6 +243,8 @@ export default function HistoryPage() {
                   </tr>
                 ))
               )}
+              
+              
             </tbody>
           </table>
         </div>
@@ -397,15 +254,15 @@ export default function HistoryPage() {
           {filteredBills.length === 0 ? (
             <p className="text-center py-8 text-gray-400">No bills found</p>
           ) : (
-            filteredBills.map((bill) => (
+            filteredBills.map((bill,idx) => (
               <div
-                key={bill.id}
+                key={bill._id}
                 className="border border-gray-200 rounded-lg p-4"
               >
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <h3 className="font-semibold text-blue-600 mb-1">
-                      {bill.id}
+                      {idx+1}
                     </h3>
                     <p className="text-sm text-gray-600">
                       {new Date(bill.date).toLocaleDateString("en-IN", {

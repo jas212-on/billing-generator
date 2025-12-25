@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Plus, Trash2, Check } from "lucide-react";
+import axiosInstance from "../lib/axios";
+import OverlayLoader from "../components/OverLayLoader";
 
 export default function BillingHome() {
   const [products, setProducts] = useState([]);
@@ -23,7 +25,25 @@ export default function BillingHome() {
     name: "",
     cost: null,
   });
-  const [paymentMode, setPaymentMode] = useState();
+  const [paymentMode, setPaymentMode] = useState("");
+
+  const [isProductsLoading, setIsProductsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setIsProductsLoading(true);
+        const response = await axiosInstance.get("/products/get-products");
+        setProducts(response.data);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsProductsLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   const addProduct = () => {
     if (
@@ -33,7 +53,7 @@ export default function BillingHome() {
     ) {
       setAddedProducts([
         ...addedProducts,
-        { ...currentProduct, id: Date.now() },
+        { ...currentProduct },
       ]);
       setCurrentProduct({ name: "", quantity: 1, rate: 0 });
     }
@@ -98,14 +118,66 @@ export default function BillingHome() {
     setCustomerInfo({ ...customerInfo, [name]: value });
   };
 
+  const handlePay = (status)=>{
+    if(addedProducts.length===0 && labourCharges.length===0){
+      alert("Please add at least one product or labour charges");
+      return;
+    }
+    if(customerInfo.name==="" || customerInfo.email==="" || customerInfo.phone===""){
+      alert("Please enter customer info");
+      return;
+    }
+    if(status==1){
+      if(paymentMode===""){
+        alert("Please select payment mode");
+        return;
+      }
+    }
+
+    setLoading(true);
+
+    const data = {
+      customerName: customerInfo.name,
+      email: customerInfo.email,
+      phone: customerInfo.phone,
+      items_detail: addedProducts,
+      labourCharges: labourCharges,
+      paymentMode: paymentMode,
+      status: status===1 ? "paid":"unpaid",
+      items: addedProducts.length,
+      amount: calculateTotal(),
+      date: new Date().toISOString().split("T")[0]
+    };
+
+    axiosInstance
+      .post("/bills/add-bill", data)
+      .then((response) => {
+        setLoading(false);
+        alert("Bill added successfully");
+      })
+      .catch((error) => {
+        console.log(error);
+        alert("Error adding bill");
+      });
+      setAddedProducts([]);
+      setLabourCharges([]);
+      setCustomerInfo({
+        name: "",
+        email: "",
+        phone: "",
+      });
+      setPaymentMode("");
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 w-full">
       {/* Header */}
+      <OverlayLoader show={loading} />
 
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center items-center h-16">
-            <h1 className="text-xl font-semibold text-gray-900">
+          <div className="flex justify-center items-center h-4 lg:h-16">
+            <h1 className="text-xl fixed top-3 lg:top-0 lg:relative font-semibold text-gray-900">
               Billing Home
             </h1>
             <div className="w-10"></div>
@@ -148,6 +220,7 @@ export default function BillingHome() {
                               ...currentProduct,
                               name: product.name,
                               rate: product.price,
+                              id: product._id,
                             });
                             setShowDropdown(false);
                           }}
@@ -331,11 +404,6 @@ export default function BillingHome() {
                     />
                   </div>
                 </div>
-
-                <button className="w-full bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors">
-                  <Check className="w-5 h-5" />
-                  Add Customer Info
-                </button>
               </div>
             </div>
           </div>
@@ -472,10 +540,10 @@ export default function BillingHome() {
                   </div>
                 </div>
                 <div className="flex flex-row justify-center items-center gap-4 w-full">
-                  <button className="px-6 py-2 w-full bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors">
+                  <button onClick={()=>handlePay(1)} className="px-6 py-2 w-full bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors">
                     Pay now
                   </button>
-                  <button className="px-6 py-2 w-full bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300 transition-colors">
+                  <button onClick={()=>handlePay(0)} className="px-6 py-2 w-full bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300 transition-colors">
                     Pay later
                   </button>
                 </div>

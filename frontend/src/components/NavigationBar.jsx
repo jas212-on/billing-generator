@@ -1,25 +1,47 @@
-import { useState } from 'react';
-import { Home, Package, Clock, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Home, Package, Clock, X, BarChart } from 'lucide-react';
 import { useNavigate } from 'react-router';
 
 // Navigation Bar Component
-export const NavigationBar = () => {
+export const NavigationBar = ({isOpen, setIsOpen}) => {
   const navigationItems = [
     { id: 'billing', label: 'Billing Home', icon: Home, navigate:"/" },
     { id: 'products', label: 'Add Product', icon: Package, navigate:"/add-product" },
     { id: 'history', label: 'History', icon: Clock, navigate:"/history" },
+    { id: 'insights', label: 'Insights', icon: BarChart, navigate:"/insights" },
   ];
   const navigate = useNavigate();
   const [selectedItem, setSelectedItem] = useState("billing");
 
+  useEffect(() => {
+    const path=location.pathname;
+    if(path.includes("add-product")){
+      setSelectedItem("products");
+    }else if(path.includes("history")){
+      setSelectedItem("history");
+    }else if(path.includes("insights")){
+      setSelectedItem("insights");
+    }else{
+      setSelectedItem("billing");
+    }
+  })
+
   return (
     <>
+
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-20 lg:hidden"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
 
       {/* Sidebar */}
       <aside className={`
         fixed lg:static inset-y-0 left-0 z-30
         w-64 bg-white border-r border-gray-200 
-        transform transition-transform duration-300 ease-in-out
+        transform transition-transform duration-300 ease-in-out top-0 h-screen 
+        ${isOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0
       `}>
         <div className="flex flex-col h-screen">
           {/* Sidebar Header */}
@@ -41,6 +63,7 @@ export const NavigationBar = () => {
                   key={item.id}
                   onClick={()=>{
                     setSelectedItem(item.id);
+                    setIsOpen(false);
                     navigate(item.navigate)}
                   }
                   className={`

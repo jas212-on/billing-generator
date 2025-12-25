@@ -1,22 +1,32 @@
-// Layout.jsx
+import { useState } from "react";
+import { Menu, X } from "lucide-react";
+import NavigationBar from "./components/NavigationBar";
 import { Outlet } from "react-router-dom";
-import NavigationBar from "./components/navigationBar";
 
 const Layout = () => {
-  return (
-    <div className="flex h-screen w-full">
-      {/* Fixed Sidebar */}
-      <div className="fixed left-0 top-0 h-screen w-64">
-        <NavigationBar />
-      </div>
+  const [isOpen, setIsOpen] = useState(false);
 
-      {/* Scrollable Content */}
-      <div className="ml-64 flex-1 overflow-y-auto">
-        <Outlet />
+  return (
+    <div className="flex w-full h-screen overflow-hidden">
+      {/* Sidebar (non-scroll) */}
+      <NavigationBar isOpen={isOpen} setIsOpen={setIsOpen} />
+
+      {/* Main content */}
+      <div className="flex-1 relative">
+        {/* Top bar (non-scroll) */}
+        <div className="top-2 left-0 lg:left-64 right-0  flex items-center">
+          <button className="lg:hidden p-3" onClick={() => setIsOpen(!isOpen)}>
+            <Menu size={24} />
+          </button>
+        </div>
+
+        {/* Scrollable content */}
+        <div className="h-full overflow-y-auto">
+          <Outlet />
+        </div>
       </div>
     </div>
   );
 };
 
 export default Layout;
-

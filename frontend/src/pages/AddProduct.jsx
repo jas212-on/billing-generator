@@ -61,9 +61,7 @@ export default function ProductManagement() {
             "/products/add-product",
             formData
           );
-          if (formData.name && formData.price > 0) {
-            setProducts([...products, { ...formData, id: response.data._id }]);
-          }
+          setProducts([...products, { ...formData, _id: response.data._id.toString() }]);
         }
       }
     } catch (error) {
@@ -88,7 +86,7 @@ export default function ProductManagement() {
     try {
       setIsDeleteLoading(true);
       await axiosInstance.delete(`/products/delete-product/${id}`);
-      setProducts(products.filter((p) => p.id !== id));
+      setProducts(products.filter((p) => p._id !== id));
     } catch (error) {
       console.log(error);
     } finally {
@@ -113,8 +111,8 @@ export default function ProductManagement() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center items-center h-16">
-            <h1 className="text-xl font-semibold text-gray-900">
+          <div className="flex justify-center items-center h-4 lg:h-16">
+            <h1 className="text-xl fixed top-3 lg:top-0 lg:relative font-semibold text-gray-900">
               Product Management
             </h1>
             <div className="w-10"></div>

@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 
 const billSchema = new mongoose.Schema({
-        id: String,
         date: String,
         customerName: String,
         email: String,
@@ -11,6 +10,7 @@ const billSchema = new mongoose.Schema({
         status: String,
         items_detail: Array,
         labourCharges: Array,
+        paymentMode: String
     });
     
 const Bill = mongoose.model("Bill", billSchema);

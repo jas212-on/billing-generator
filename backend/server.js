@@ -5,6 +5,7 @@ import cors from "cors"
 import { createServer } from "http"
 import productRoutes from "./routes/productRoutes.js"
 import billRoutes from "./routes/billRoutes.js"
+import insightsRoutes from "./routes/insightsRoutes.js"
 
 dotenv.config()
 
@@ -17,14 +18,13 @@ app.use(cors({
 }))
 app.use(express.json())
 
-
-
 app.get('/', (req, res) => {
   res.send('Server running !');
 });
 
 app.use("/api/products",productRoutes)
 app.use("/api/bills",billRoutes)
+app.use("/api/insights",insightsRoutes)
 
 httpServer.listen(PORT,()=>{
     console.log("Server starting at port "+PORT )
