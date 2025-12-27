@@ -10,12 +10,16 @@ import billRoutes from "./routes/billRoutes.js"
 import insightsRoutes from "./routes/insightsRoutes.js"
 import authRoutes from "./routes/authRoutes.js"
 import adminRoutes from "./routes/adminRoutes.js"
+import path from "path";
 
 dotenv.config()
 
 const app = express()
 const PORT = process.env.PORT || 5000
 const httpServer = createServer(app)
+
+
+const __dirname = path.resolve();
 
 app.use(express.json())
 
@@ -66,6 +70,12 @@ app.use("/api/products",productRoutes)
 app.use("/api/bills",billRoutes)
 app.use("/api/insights",insightsRoutes)
 app.use("/api/admin",adminRoutes)
+
+app.use(express.static(path.join(__dirname, "frontend/dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "frontend/dist/index.html"));
+});
 
 httpServer.listen(PORT,()=>{
     console.log("Server starting at port "+PORT )
