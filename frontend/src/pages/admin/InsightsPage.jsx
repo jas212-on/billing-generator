@@ -12,7 +12,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import axiosInstance from "../lib/axios";
+import axiosInstance from "../../lib/axios";
 
 export default function InsightsPage() {
   const [monthlySalesData, setMonthlySalesData] = useState([]);
@@ -151,6 +151,81 @@ export default function InsightsPage() {
 
       {/* Pie Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+         {/* Top 5 Customers */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-gray-900">Top 5 Employees</h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Based on total billed amount
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center">
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={topCustomersData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={renderLabel}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="moneySpent"
+                >
+                  {topCustomersData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+                          <p className="font-semibold text-gray-900">
+                            {payload[0].name}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            ₹{payload[0].value.toLocaleString()}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {payload[0].payload.percentage}%
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+
+            {/* Legend */}
+            <div className="mt-4 w-full space-y-2">
+              {topCustomersData.map((customer, index) => (
+                <div key={index} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                    />
+                    <span className="text-sm text-gray-700">
+                      {customer.name}
+                    </span>
+                  </div>
+                  <span className="text-sm font-semibold text-gray-900">
+                    ₹{customer.moneySpent.toLocaleString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Top 5 Most Sold Items */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="mb-6">
@@ -223,79 +298,7 @@ export default function InsightsPage() {
           </div>
         </div>
 
-        {/* Top 5 Customers */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Top 5 Customers</h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Based on total purchase amount
-            </p>
-          </div>
-
-          <div className="flex flex-col items-center">
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={topCustomersData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={renderLabel}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="moneySpent"
-                >
-                  {topCustomersData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-                          <p className="font-semibold text-gray-900">
-                            {payload[0].name}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            ₹{payload[0].value.toLocaleString()}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            {payload[0].payload.percentage}%
-                          </p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-
-            {/* Legend */}
-            <div className="mt-4 w-full space-y-2">
-              {topCustomersData.map((customer, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-4 h-4 rounded-full"
-                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                    />
-                    <span className="text-sm text-gray-700">
-                      {customer.name}
-                    </span>
-                  </div>
-                  <span className="text-sm font-semibold text-gray-900">
-                    ₹{customer.moneySpent.toLocaleString()}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+       
       </div>
     </div>
   );

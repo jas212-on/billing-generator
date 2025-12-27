@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Search, Package, Clock, Filter } from "lucide-react";
-import BillDetailsModal from "../components/BillDetailsModal";
-import axiosInstance from "../lib/axios";
+import BillDetailsModal from "../../components/BillDetailsModal";
+import axiosInstance from "../../lib/axios";
 
 export default function HistoryPage() {
   const [selectedBill, setSelectedBill] = useState(null);
@@ -26,6 +26,7 @@ export default function HistoryPage() {
   });
 
   useEffect(()=>{
+
     const fetchBills = async () => {
       try {
         setLoading(true);
@@ -88,38 +89,6 @@ export default function HistoryPage() {
             ₹{totalAmount.toFixed(2)}
           </p>
         </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 mb-1">Paid</p>
-              <h3 className="text-2xl font-bold text-green-600">
-                {filteredBills.filter((b) => b.status === "paid").length}
-              </h3>
-            </div>
-            <div className="bg-green-100 p-3 rounded-lg">
-              <Clock className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-          <p className="text-sm text-gray-500 mt-2">₹{paidAmount.toFixed(2)}</p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6 mr-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 mb-1">Unpaid</p>
-              <h3 className="text-2xl font-bold text-red-600">
-                {filteredBills.filter((b) => b.status === "unpaid").length}
-              </h3>
-            </div>
-            <div className="bg-red-100 p-3 rounded-lg">
-              <Clock className="w-6 h-6 text-red-600" />
-            </div>
-          </div>
-          <p className="text-sm text-gray-500 mt-2">
-            ₹{unpaidAmount.toFixed(2)}
-          </p>
-        </div>
       </div>
 
       {/* Bills Table */}
@@ -168,7 +137,7 @@ export default function HistoryPage() {
                   Date
                 </th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                  Customer
+                  Billed by
                 </th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
                   Items
@@ -176,16 +145,13 @@ export default function HistoryPage() {
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
                   Amount
                 </th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                  Status
-                </th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
                     <td colSpan="7" className="text-center py-8 text-gray-400">
-                      Loading products...
+                      Loading bills...
                     </td>
                   </tr>
               ):
@@ -216,28 +182,13 @@ export default function HistoryPage() {
                     </td>
                     <td className="py-4 px-4">
                       <span className="font-medium text-gray-900">
-                        {bill.customerName}
+                        {bill.billedBy}
                       </span>
                     </td>
                     <td className="py-4 px-4 text-gray-700">{bill.items}</td>
                     <td className="py-4 px-4">
                       <span className="font-semibold text-gray-900">
                         ₹{bill.amount.toFixed(2)}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4">
-                      <span
-                        className={`
-                        inline-block px-3 py-1 text-xs font-medium rounded-full
-                        ${
-                          bill.status === "paid"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                        }
-                      `}
-                      >
-                        {bill.status.charAt(0).toUpperCase() +
-                          bill.status.slice(1)}
                       </span>
                     </td>
                   </tr>
@@ -272,18 +223,6 @@ export default function HistoryPage() {
                       })}
                     </p>
                   </div>
-                  <span
-                    className={`
-                    inline-block px-3 py-1 text-xs font-medium rounded-full
-                    ${
-                      bill.status === "paid"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }
-                  `}
-                  >
-                    {bill.status.charAt(0).toUpperCase() + bill.status.slice(1)}
-                  </span>
                 </div>
 
                 <div className="space-y-2 mb-3">

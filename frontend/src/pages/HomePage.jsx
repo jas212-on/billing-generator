@@ -2,11 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Plus, Trash2, Check } from "lucide-react";
 import axiosInstance from "../lib/axios";
 import OverlayLoader from "../components/OverLayLoader";
+import InvoiceButton, { downloadInvoice } from "../components/InvoiceGenerator";
 
 export default function BillingHome() {
   const [products, setProducts] = useState([]);
   const [labourCharges, setLabourCharges] = useState([]);
-  const [customerName, setCustomerName] = useState("");
+  const [billerName, setBillerName] = useState("");
+  const [billerId, setBillerId] = useState("");
   const [currentProduct, setCurrentProduct] = useState({
     name: "",
     price: null,
@@ -20,6 +22,7 @@ export default function BillingHome() {
     email: "",
     phone: "",
   });
+  const [amount, setAmount] = useState();
 
   const [currentLabour, setCurrentLabour] = useState({
     name: "",
@@ -31,6 +34,16 @@ export default function BillingHome() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    const fetchEmployee = async () => {
+      try {
+        const response = await axiosInstance.get("/role");
+        setBillerName(response.data.name);
+        setBillerId(response.data.userId);
+      } catch (error) {
+        console.log(error);
+      } finally {
+      }
+    };
     const fetchProducts = async () => {
       try {
         setIsProductsLoading(true);
@@ -42,6 +55,8 @@ export default function BillingHome() {
         setIsProductsLoading(false);
       }
     };
+
+    fetchEmployee();
     fetchProducts();
   }, []);
 
@@ -51,10 +66,7 @@ export default function BillingHome() {
       currentProduct.rate > 0 &&
       currentProduct.quantity > 0
     ) {
-      setAddedProducts([
-        ...addedProducts,
-        { ...currentProduct },
-      ]);
+      setAddedProducts([...addedProducts, { ...currentProduct }]);
       setCurrentProduct({ name: "", quantity: 1, rate: 0 });
     }
   };
@@ -118,20 +130,28 @@ export default function BillingHome() {
     setCustomerInfo({ ...customerInfo, [name]: value });
   };
 
-  const handlePay = (status)=>{
-    if(addedProducts.length===0 && labourCharges.length===0){
+  const handlePay = (status) => {
+    if (addedProducts.length === 0 && labourCharges.length === 0) {
       alert("Please add at least one product or labour charges");
       return;
     }
-    if(customerInfo.name==="" || customerInfo.email==="" || customerInfo.phone===""){
+    if (
+      customerInfo.name === "" ||
+      customerInfo.email === "" ||
+      customerInfo.phone === ""
+    ) {
       alert("Please enter customer info");
       return;
     }
-    if(status==1){
-      if(paymentMode===""){
+    if (status == 1) {
+      if (paymentMode === "") {
         alert("Please select payment mode");
         return;
       }
+    }
+    if (amount < calculateTotal()) {
+      alert("Amount is less than total");
+      return;
     }
 
     setLoading(true);
@@ -143,10 +163,13 @@ export default function BillingHome() {
       items_detail: addedProducts,
       labourCharges: labourCharges,
       paymentMode: paymentMode,
-      status: status===1 ? "paid":"unpaid",
       items: addedProducts.length,
       amount: calculateTotal(),
-      date: new Date().toISOString().split("T")[0]
+      paidAmount: paymentMode === "cash" ? amount : calculateTotal(),
+      balance: paymentMode === "cash" ? amount - calculateTotal() : 0,
+      date: new Date().toISOString().split("T")[0],
+      billedBy: billerName,
+      billerId: billerId,
     };
 
     axiosInstance
@@ -154,20 +177,22 @@ export default function BillingHome() {
       .then((response) => {
         setLoading(false);
         alert("Bill added successfully");
+        downloadInvoice(response.data);
       })
       .catch((error) => {
         console.log(error);
+        setLoading(false);
         alert("Error adding bill");
       });
-      setAddedProducts([]);
-      setLabourCharges([]);
-      setCustomerInfo({
-        name: "",
-        email: "",
-        phone: "",
-      });
-      setPaymentMode("");
-  }
+    setAddedProducts([]);
+    setLabourCharges([]);
+    setCustomerInfo({
+      name: "",
+      email: "",
+      phone: "",
+    });
+    setPaymentMode("");
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 w-full">
@@ -282,62 +307,6 @@ export default function BillingHome() {
                 >
                   <Plus className="w-5 h-5" />
                   Add Item
-                </button>
-              </div>
-            </div>
-
-            {/* Labour Charges Section */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Labour Charges
-              </h2>
-
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Labour/Service Name
-                    </label>
-                    <input
-                      type="text"
-                      value={currentLabour.name}
-                      onChange={(e) =>
-                        setCurrentLabour({
-                          ...currentLabour,
-                          name: e.target.value,
-                        })
-                      }
-                      placeholder="e.g. Oil Change"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Cost (₹)
-                    </label>
-                    <input
-                      type="number"
-                      defaultValue={0}
-                      value={currentLabour.cost}
-                      onChange={(e) =>
-                        setCurrentLabour({
-                          ...currentLabour,
-                          cost: parseFloat(e.target.value) || null,
-                        })
-                      }
-                      placeholder="0.00"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  onClick={addLabour}
-                  className="w-full bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
-                >
-                  <Plus className="w-5 h-5" />
-                  Add Labour
                 </button>
               </div>
             </div>
@@ -509,7 +478,7 @@ export default function BillingHome() {
                         id="cash"
                         value="cash"
                         className="w-4 h-4"
-                        onChange={(e)=>setPaymentMode(e.target.value)}
+                        onChange={(e) => setPaymentMode(e.target.value)}
                       />
                       <span className="ml-3 text-gray-700">Cash</span>
                     </label>
@@ -521,7 +490,7 @@ export default function BillingHome() {
                         id="card"
                         value="card"
                         className="w-4 h-4"
-                        onChange={(e)=>setPaymentMode(e.target.value)}
+                        onChange={(e) => setPaymentMode(e.target.value)}
                       />
                       <span className="ml-3 text-gray-700">Card</span>
                     </label>
@@ -533,19 +502,52 @@ export default function BillingHome() {
                         id="upi"
                         value="upi"
                         className="w-4 h-4"
-                        onChange={(e)=>setPaymentMode(e.target.value)}
+                        onChange={(e) => setPaymentMode(e.target.value)}
                       />
                       <span className="ml-3 text-gray-700">UPI</span>
                     </label>
                   </div>
                 </div>
+                {paymentMode === "cash" && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Amount
+                    </label>
+                    <input
+                      type="number"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      placeholder="Enter amount"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                )}
                 <div className="flex flex-row justify-center items-center gap-4 w-full">
-                  <button onClick={()=>handlePay(1)} className="px-6 py-2 w-full bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors">
+                  <button
+                    onClick={() => handlePay(1)}
+                    className="px-6 py-2 w-full bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+                  >
                     Pay now
                   </button>
-                  <button onClick={()=>handlePay(0)} className="px-6 py-2 w-full bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300 transition-colors">
-                    Pay later
-                  </button>
+                  <InvoiceButton
+                    bill={{
+                      customerName: customerInfo.name,
+                      email: customerInfo.email,
+                      phone: customerInfo.phone,
+                      items_detail: addedProducts,
+                      labourCharges: labourCharges,
+                      paymentMode: paymentMode,
+                      items: addedProducts.length,
+                      amount: calculateTotal(),
+                      paidAmount:
+                        paymentMode === "cash" ? amount : calculateTotal(),
+                      balance:
+                        paymentMode === "cash" ? calculateTotal() - amount : 0,
+                      date: new Date().toISOString().split("T")[0],
+                      billedBy: billerName,
+                      billerId: billerId,
+                    }}
+                  />
                 </div>
               </div>
             )}

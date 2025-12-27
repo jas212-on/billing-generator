@@ -1,19 +1,36 @@
 import { useEffect, useState } from 'react';
-import { Home, Package, Clock, X, BarChart } from 'lucide-react';
+import { Home, Package, Clock, X, BarChart, LogOutIcon } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { axiosInstance } from '../lib/axios';
 
 // Navigation Bar Component
 export const NavigationBar = ({isOpen, setIsOpen}) => {
   const navigationItems = [
-    { id: 'billing', label: 'Billing Home', icon: Home, navigate:"/" },
-    { id: 'products', label: 'Add Product', icon: Package, navigate:"/add-product" },
-    { id: 'history', label: 'History', icon: Clock, navigate:"/history" },
-    { id: 'insights', label: 'Insights', icon: BarChart, navigate:"/insights" },
+    { id: 'dashboard', label: 'Dashboard', icon: Home, navigate:"/user/dashboard",roles: ["user"] },
+    { id: 'dashboard', label: 'Dashboard', icon: Home, navigate:"/admin/dashboard",roles: ["admin"] },
+    { id: 'billing', label: 'Billing', icon: Home, navigate:"/billing",roles: ["user"] },
+    { id: 'products', label: 'Add Product', icon: Package, navigate:"/add-product", roles: ["admin"] },
+    { id: 'history', label: 'History', icon: Clock, navigate:"/history", roles: ["admin"] },
+    { id: 'insights', label: 'Insights', icon: BarChart, navigate:"/insights",roles: ["admin"] },
   ];
   const navigate = useNavigate();
-  const [selectedItem, setSelectedItem] = useState("billing");
+  const [selectedItem, setSelectedItem] = useState("dashboard");
+
+  const [role,setRole] = useState("");
 
   useEffect(() => {
+    const fetchRole = async () => {
+      try {
+        const response = await axiosInstance.get("/role");
+        console.log(response.data.role)
+        setRole(response.data.role);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    fetchRole();
+
     const path=location.pathname;
     if(path.includes("add-product")){
       setSelectedItem("products");
@@ -21,10 +38,22 @@ export const NavigationBar = ({isOpen, setIsOpen}) => {
       setSelectedItem("history");
     }else if(path.includes("insights")){
       setSelectedItem("insights");
-    }else{
+    }else if(path.includes("dashboard")){
+      setSelectedItem("dashboard");
+    }else if(path.includes("billing")){
       setSelectedItem("billing");
     }
   })
+
+  const handleLogout = async () => {
+    try {
+      const response = await axiosInstance.post("/auth/logout");
+      console.log(response.data);
+      navigate("/");
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   return (
     <>
@@ -57,6 +86,7 @@ export const NavigationBar = ({isOpen, setIsOpen}) => {
           {/* Navigation Items */}
           <nav className="flex-1 px-4 py-6 space-y-2">
             {navigationItems.map(item => {
+              if(item.roles.includes(role)===false) return null;
               const Icon = item.icon;
               return (
                 <button
@@ -77,6 +107,10 @@ export const NavigationBar = ({isOpen, setIsOpen}) => {
                 </button>
               );
             })}
+            <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left cursor-pointer bg-red-100">
+                <LogOutIcon className="w-5 h-5" />
+                <span className="font-medium">Logout</span>
+            </button>
           </nav>
 
           {/* Sidebar Footer */}

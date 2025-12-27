@@ -8,7 +8,7 @@ import {
   Loader,
   Loader2,
 } from "lucide-react";
-import { axiosInstance } from "../lib/axios";
+import { axiosInstance } from "../../lib/axios";
 
 export default function ProductManagement() {
   const [products, setProducts] = useState([]);
@@ -19,7 +19,7 @@ export default function ProductManagement() {
 
   const [formData, setFormData] = useState({
     name: "",
-    price: 0,
+    price: "",
   });
 
   const [isProductsLoading, setIsProductsLoading] = useState(false);
@@ -38,10 +38,12 @@ export default function ProductManagement() {
         setIsProductsLoading(false);
       }
     };
+
     fetchProducts();
   }, []);
 
   const handleSubmit = async () => {
+    console.log(formData);
     try {
       setLoading(true);
       if (formData.name && formData.price) {
@@ -61,7 +63,10 @@ export default function ProductManagement() {
             "/products/add-product",
             formData
           );
-          setProducts([...products, { ...formData, _id: response.data._id.toString() }]);
+          setProducts([
+            ...products,
+            { ...formData, _id: response.data._id.toString() },
+          ]);
         }
       }
     } catch (error) {
@@ -96,7 +101,7 @@ export default function ProductManagement() {
   };
 
   const handleCancel = () => {
-    setFormData({ name: "", price: 0, category: "", stock: 0 });
+    setFormData({ name: "", price: 0,});
     setEditingId(null);
   };
 
@@ -122,6 +127,7 @@ export default function ProductManagement() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
         {/* Add/Edit Product Form */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
@@ -169,7 +175,11 @@ export default function ProductManagement() {
             <div className="flex gap-3">
               <button
                 onClick={handleSubmit}
-                className={`flex-1 ${loading ? "bg-blue-300 hover:bg-blue-400 cursor-not-allowed hover:cursor-not-allowed  " : "bg-blue-600 hover:bg-blue-700"} cursor-pointer  text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors`}
+                className={`flex-1 ${
+                  loading
+                    ? "bg-blue-300 hover:bg-blue-400 cursor-not-allowed hover:cursor-not-allowed  "
+                    : "bg-blue-600 hover:bg-blue-700"
+                } cursor-pointer  text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors`}
               >
                 {editingId ? (
                   <>
@@ -242,13 +252,13 @@ export default function ProductManagement() {
               <tbody>
                 {isProductsLoading ? (
                   <tr>
-                    <td colSpan="3" className="text-center py-8 text-gray-400">
+                    <td colSpan="5" className="text-center py-8 text-gray-400">
                       Loading products...
                     </td>
                   </tr>
                 ) : filteredProducts.length === 0 ? (
                   <tr>
-                    <td colSpan="3" className="text-center py-8 text-gray-400">
+                    <td colSpan="5" className="text-center py-8 text-gray-400">
                       {searchTerm
                         ? "No products found"
                         : "No products added yet"}

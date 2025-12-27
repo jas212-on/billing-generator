@@ -5,12 +5,15 @@ const billSchema = new mongoose.Schema({
         customerName: String,
         email: String,
         phone: String,
+        userId: String,
         items: Number,
         amount: Number,
-        status: String,
         items_detail: Array,
-        labourCharges: Array,
-        paymentMode: String
+        paymentMode: String,
+        paidAmount: Number,
+        balance: Number,
+        billedBy: String,
+        billerId : String
     });
     
 const Bill = mongoose.model("Bill", billSchema);

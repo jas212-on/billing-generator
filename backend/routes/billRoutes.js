@@ -3,10 +3,12 @@ import Bill from "../models/Bill.js";
 import CustomerData from "../models/CustomerData.js";
 import ProductData from "../models/ProductData.js";
 import RevenueData from "../models/RevenueData.js";
+import { orMiddleware } from "../middleware/orMiddleware.js";
+import { isAdmin, isUser } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.get("/get-bills", async (req, res) => {
+router.get("/get-bills",isAdmin, async (req, res) => {
   try {
     const bills = await Bill.find();
     res.status(201).json(bills);
@@ -16,20 +18,21 @@ router.get("/get-bills", async (req, res) => {
   }
 });
 
-router.put("/update-bill/:id", async (req, res) => {
+router.get("/get-bill", isUser, async (req, res) => {
   try {
-    const { id } = req.params;
-    const bill = await Bill.findById(id);
-    bill.status = "paid";
-    bill.save();
-    res.status(201).json(bill);
+    const userId = req.session.userId;
+
+    const bills = await Bill.find({ billerId: userId });
+
+    res.status(200).json(bills);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({ error: error.message });
   }
 });
 
-router.post("/add-bill", async (req, res) => {
+
+router.post("/add-bill",orMiddleware(isAdmin, isUser), async (req, res) => {
   try {
     const {
       date,
@@ -38,10 +41,13 @@ router.post("/add-bill", async (req, res) => {
       phone,
       items,
       amount,
-      status,
       items_detail,
       labourCharges,
       paymentMode,
+      billedBy,
+      paidAmount,
+      balance,
+      billerId
     } = req.body;
     const bill = await Bill.create({
       date,
@@ -50,23 +56,16 @@ router.post("/add-bill", async (req, res) => {
       phone,
       items,
       amount,
-      status,
       items_detail,
       labourCharges,
       paymentMode,
+      billedBy,
+      paidAmount,
+      balance,
+      billerId
     });
 
-    await CustomerData.findOneAndUpdate(
-      { email: email },
-      {
-        $set: { name: customerName },
-        $inc: { moneySpent: amount },
-      },
-      {
-        upsert: true,
-        new: true,
-      }
-    );
+    const employee = await CustomerData.findByIdAndUpdate(billerId, { $inc: { orders: 1, moneySpent: amount } }, { new: true });
 
     items_detail.forEach(async (item) => {
       const { id, name, quantity } = item;

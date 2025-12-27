@@ -2,10 +2,11 @@ import express from "express";
 import RevenueData from "../models/RevenueData.js";
 import CustomerData from "../models/CustomerData.js";
 import ProductData from "../models/ProductData.js";
+import { isAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.get("/get-revenue", async (req, res) => {
+router.get("/get-revenue",isAdmin, async (req, res) => {
   try {
     const year = 2025;
     const data = await RevenueData.find({ year }).sort({ monthNumber: 1 });
@@ -16,7 +17,7 @@ router.get("/get-revenue", async (req, res) => {
   }
 });
 
-router.get("/get-customers", async (req, res) => {
+router.get("/get-customers",isAdmin, async (req, res) => {
   try {
     const data = await CustomerData.find().sort({ moneySpent: -1 }).limit(5);
     res.status(201).json(data);
@@ -26,7 +27,7 @@ router.get("/get-customers", async (req, res) => {
   }
 });
 
-router.get("/get-products", async (req, res) => {
+router.get("/get-products",isAdmin, async (req, res) => {
   try {
     const data = await ProductData.find().sort({ quantity: -1 }).limit(5);
     res.status(201).json(data);
