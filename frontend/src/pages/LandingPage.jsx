@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileText, Shield, Users, CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../lib/axios';
@@ -10,12 +10,36 @@ export default function InvoiceLanding() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLoginClick = (type) => {
-    setLoginType(type);
-    setShowLogin(true);
-  };
+  
+
+  const [role, setRole] = useState(null);
+  useEffect(() => {
+    const fetchRole = async () => {
+      try {
+        const response = await axiosInstance.get("/role");
+        console.log(response.data.role);
+        setRole(response.data.role);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchRole();
+  },[]);
 
   const navigate = useNavigate();
+
+  const handleLoginClick = (type) => {
+    if(role==="admin"){
+      navigate('/admin/dashboard');
+    }else if(role==="user"){
+      navigate('/user/dashboard');
+    }else{
+      setLoginType(type);
+      setShowLogin(true);
+    }
+    
+  };
 
   const handleLoginSubmit = async () => {
     console.log('Sign in as:', loginType, email, password);
