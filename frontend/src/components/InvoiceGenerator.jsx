@@ -3,146 +3,112 @@ import autoTable from "jspdf-autotable";
 import { Printer } from "lucide-react";
 
 export const downloadInvoice = (bill) => {
-  const doc = new jsPDF();
-  
-  // Color scheme
-  const primaryColor = [41, 128, 185]; // Professional blue
-  const darkGray = [44, 62, 80];
-  const lightGray = [236, 240, 241];
-  const accentColor = [52, 152, 219];
-  
-  // Header with colored background
-  doc.setFillColor(...primaryColor);
-  doc.rect(0, 0, 210, 35, 'F');
-  
-  // Company name in header
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(24);
-  doc.setFont(undefined, 'bold');
-  doc.text("INVOICE", 14, 15);
-  
-  doc.setFontSize(10);
-  doc.setFont(undefined, 'normal');
-  doc.text(`Invoice #: INV-${Date.now().toString().slice(-6)}`, 14, 23);
-  doc.text(`Date: ${bill.date}`, 14, 29);
-  
-  // Reset text color
-  doc.setTextColor(...darkGray);
-  
-  // Company information box
-  doc.setFillColor(...lightGray);
-  doc.roundedRect(14, 42, 85, 28, 2, 2, 'F');
-  
-  doc.setFontSize(11);
-  doc.setFont(undefined, 'bold');
-  doc.text("FROM:", 18, 49);
-  
-  doc.setFont(undefined, 'normal');
-  doc.setFontSize(9);
-  doc.text("My Company Pvt Ltd", 18, 55);
-  doc.text("mycompany@email.com", 18, 60);
-  doc.text("+91 123 456 789", 18, 65);
-  
-  // Customer information box
-  doc.setFillColor(...lightGray);
-  doc.roundedRect(111, 42, 85, 28, 2, 2, 'F');
-  
-  doc.setFontSize(11);
-  doc.setFont(undefined, 'bold');
-  doc.text("BILL TO:", 115, 49);
-  
-  doc.setFont(undefined, 'normal');
-  doc.setFontSize(9);
-  doc.text(bill.customerName, 115, 55);
-  doc.text(bill.email, 115, 60);
-  doc.text(bill.phone, 115, 65);
-  
-  // Items table
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: [80, 200], // 80mm receipt
+  });
+
+  let y = 8;
+
+  // ===== COMPANY HEADER =====
   doc.setFontSize(12);
-  doc.setFont(undefined, 'bold');
-  doc.setTextColor(...primaryColor);
-  doc.text("ITEMS", 14, 82);
-  doc.setTextColor(...darkGray);
-  
+  doc.setFont(undefined, "bold");
+  doc.text("MY COMPANY PVT LTD", 40, y, { align: "center" });
+
+  y += 4;
+  doc.setFontSize(8);
+  doc.setFont(undefined, "normal");
+  doc.text("123, Street ABC", 40, y, { align: "center" });
+
+  y += 4;
+  doc.text("Tel: +91 98765 43210", 40, y, { align: "center" });
+
+  y += 5;
+  doc.text("********************************", 40, y, { align: "center" });
+
+  // ===== CUSTOMER INFO =====
+  y += 5;
+  doc.text(`Customer: ${bill.customerName}`, 5, y);
+  doc.text(bill.date, 75, y, { align: "right" });
+
+  y += 4;
+  doc.text(`Phone: +91 ${bill.phone}`, 5, y);
+
+  y += 5;
+  doc.text("----------------------------------------", 40, y, { align: "center" });
+
+  // ===== ITEMS TABLE =====
+  y += 2;
+
   autoTable(doc, {
-    startY: 86,
-    head: [["Item Description", "Qty", "Unit Price", "Amount"]],
+    startY: y,
+    margin: { left: 5, right: 5 },
+    theme: "plain",
+    head: [["ITEM", "QTY","PRICE","AMT"]],
     body: bill.items_detail.map((item) => [
       item.name,
       item.quantity,
       `Rs. ${item.rate.toFixed(2)}`,
-      `Rs. ${(item.quantity * item.rate).toFixed(2)}`
+      `Rs. ${(item.quantity * item.rate).toFixed(2)}`,
     ]),
-    theme: 'striped',
-    headStyles: {
-      fillColor: primaryColor,
-      textColor: [255, 255, 255],
-      fontSize: 10,
-      fontStyle: 'bold',
-      halign: 'left'
+    styles: {
+      fontSize: 8,
+      cellPadding: 1,
+      lineWidth: 0.1,
+      lineColor: [0, 0, 0],
     },
-    bodyStyles: {
-      fontSize: 9,
-      textColor: darkGray
+    headStyles: {
+      fontStyle: "bold",
+      halign: "center",
     },
     columnStyles: {
-      0: { cellWidth: 90 },
-      1: { halign: 'left', cellWidth: 20 },
-      2: { halign: 'left', cellWidth: 35 },
-      3: { halign: 'left', cellWidth: 35 }
+      0: { cellWidth: 25, halign: "center" },
+      1: { cellWidth: 10, halign: "center" },
+      2: { cellWidth: 18, halign: "center" },
+      3: { cellWidth: 18, halign: "center" },
     },
-    alternateRowStyles: {
-      fillColor: [249, 249, 249]
-    }
   });
 
-  //Total
-  const totalY = doc.lastAutoTable.finalY;
-  const totalStartX = 18;
-  
-  doc.setFontSize(14);
-  doc.setFont(undefined, 'normal');
-  
-  doc.text("Total:", totalStartX, totalY + 15);
-  doc.text(`Rs. ${bill.amount.toFixed(2)}`, totalStartX+15, totalY + 15);
-  
-  const paymentY = totalY + 20;
-  const paymentStartX = 18;
-  
-  // payment box background
-  doc.setFillColor(...lightGray);
-  doc.roundedRect(paymentStartX - 5, paymentY + 8, 66, bill.paymentMode==="cash" ? 28: 20, 2, 2, 'F');
-  
-  doc.setFontSize(10);
-  doc.setFont(undefined, 'normal');
-  
-  
-  doc.text("Payment Mode:", paymentStartX, paymentY + 15);
-  doc.text(`${bill.paymentMode.toUpperCase()}`, paymentStartX+28, paymentY + 15,);
-  
-  doc.text("Amount Paid:", paymentStartX, paymentY + 22);
-  doc.text(`Rs. ${bill.paidAmount.toFixed(2)}`, paymentStartX+25, paymentY + 22,);
+  y = doc.lastAutoTable.finalY + 7;
 
-  if(bill.paymentMode==="cash"){
-    doc.text("Balance:", paymentStartX, paymentY + 29);
-    doc.text(`Rs. ${bill.balance.toFixed(2)}`, paymentStartX+25, paymentY + 29,);
+  // ===== TOTAL SECTION =====
+  doc.setFont(undefined, "bold");
+  doc.text("TOTAL AMOUNT", 5, y);
+  doc.text(`Rs. ${bill.amount.toFixed(2)}`, 75, y, { align: "right" });
+
+  y += 5;
+  doc.setFont(undefined, "normal");
+  doc.text("Amount Paid", 5, y);
+  doc.text(`Rs. ${bill.paidAmount.toFixed(2)}`, 75, y, { align: "right" });
+
+  if (bill.balance > 0) {
+    y += 5;
+    doc.text("Balance", 5, y);
+    doc.text(`Rs. ${bill.balance.toFixed(2)}`, 75, y, { align: "right" });
   }
 
-  
-  doc.setFontSize(10);
-  doc.setFont(undefined, 'normal');
-  
-  // Footer
-  doc.setTextColor(...darkGray);
+  // ===== PAYMENT INFO =====
+  y += 7;
   doc.setFontSize(8);
-  doc.setFont(undefined, 'italic');
-  const pageHeight = doc.internal.pageSize.height;
-  doc.text("Thank you for your business!", 105, pageHeight - 15, { align: 'center' });
+  doc.text(`Payment Mode: ${bill.paymentMode.toUpperCase()}`, 5, y);
 
-  
-  // Download
-  doc.save(`invoice-${bill.customerName.replace(/\s+/g, '-')}-${Date.now()}.pdf`);
+  y+=4
+  doc.text(`Billed by: ${bill.billedBy}`, 5, y);
+
+  y += 8;
+  doc.text("********************************", 40, y, { align: "center" });
+
+  // ===== FOOTER =====
+  y += 3;
+  doc.setFont(undefined, "bold");
+  doc.text("THANK YOU!", 40, y, { align: "center" });
+
+  // ===== SAVE =====
+  doc.save(`receipt-${Date.now()}.pdf`);
 };
+
+
 
 export default function InvoiceButton({bill}) {
   return (
