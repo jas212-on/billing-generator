@@ -11,6 +11,7 @@ import axiosInstance from "./lib/axios";
 import { useEffect, useState } from "react";
 import InvoiceLanding from "./pages/LandingPage";
 import { Toaster } from "react-hot-toast";
+import LoadingComponent from "./components/LoadingComponent";
 
 function App() {
   const [role, setRole] = useState(null);
@@ -29,7 +30,7 @@ function App() {
   }, []);
 
   if (role === null) {
-    return null; // or spinner
+    return <LoadingComponent message="Getting things ready for you..." />; // or spinner
   }
 
   return (
