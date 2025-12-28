@@ -75,7 +75,7 @@ export const NavigationBar = ({isOpen, setIsOpen}) => {
         <div className="flex flex-col h-screen">
           {/* Sidebar Header */}
           <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900">Billing App</h2>
+            <h2 className="text-xl font-bold text-gray-900">Invoice hub</h2>
             {/* <button 
               className=" p-2 hover:bg-gray-100 rounded-lg"
             >

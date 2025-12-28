@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { axiosInstance } from "../lib/axios";
+import toast from "react-hot-toast";
 
 export default function EmployeeModal({ isOpen, setIsOpen, userData, editing, setEditing }) {
   const [formData, setFormData] = useState({
@@ -29,6 +30,7 @@ export default function EmployeeModal({ isOpen, setIsOpen, userData, editing, se
       if(editing){
         const response = await axiosInstance.put(`/admin/update-user/${formData._id}`, formData);
         setIsOpen(false);
+        setEditing(false);
       }else{
         const response = await axiosInstance.post("/admin/add-user", formData);
       alert(`Employee added: ${formData.name} (${formData.role})`);
@@ -36,6 +38,7 @@ export default function EmployeeModal({ isOpen, setIsOpen, userData, editing, se
       }
       
     } catch (error) {
+        toast.error("Failed to add employee");
         console.log(error)
     }
   };

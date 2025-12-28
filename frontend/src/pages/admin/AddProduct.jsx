@@ -9,6 +9,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { axiosInstance } from "../../lib/axios";
+import toast from "react-hot-toast";
 
 export default function ProductManagement() {
   const [products, setProducts] = useState([]);
@@ -68,14 +69,17 @@ export default function ProductManagement() {
             { ...formData, _id: response.data._id.toString() },
           ]);
         }
+      }else{
+        toast.error("Please fill all the fields");
       }
     } catch (error) {
+      toast.error("Failed to add product");
       console.log(error);
     } finally {
       setLoading(false);
     }
 
-    setFormData({ name: "", price: 0, category: "", stock: 0 });
+    setFormData({ name: "", price: null });
   };
 
   const handleEdit = (product, id) => {
@@ -107,8 +111,7 @@ export default function ProductManagement() {
 
   const filteredProducts = products.filter(
     (product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchTerm.toLowerCase())
+      product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

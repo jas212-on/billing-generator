@@ -209,6 +209,7 @@ export default function HistoryPage() {
               <div
                 key={bill._id}
                 className="border border-gray-200 rounded-lg p-4"
+                onClick={() => handleViewDetails(bill)}
               >
                 <div className="flex justify-between items-start mb-3">
                   <div>

@@ -13,24 +13,32 @@ import {
   Cell,
 } from "recharts";
 import axiosInstance from "../../lib/axios";
+import toast from "react-hot-toast";
+import LoadingComponent from "../../components/LoadingComponent";
 
 export default function InsightsPage() {
   const [monthlySalesData, setMonthlySalesData] = useState([]);
   const [topItemsData, setTopItemsData] = useState([]);
   const [topCustomersData, setTopCustomersData] = useState([]);
+  const [loading,setLoading] = useState(false)
 
   useEffect(() => {
     const fetchMonthlySalesData = async () => {
       try {
+        setLoading(true);
         const response = await axiosInstance.get("/insights/get-revenue");
         setMonthlySalesData(response.data);
       } catch (error) {
         console.log(error);
+        toast.error("Failed to fetch monthly sales data");
+      } finally{
+        setLoading(false);
       }
     };
 
     const fetchTopItemsData = async () => {
       try {
+        setLoading(true);
         const response = await axiosInstance.get("/insights/get-products");
         const data = response.data;
         const total = data.reduce((sum, item) => sum + item.quantity, 0);
@@ -41,11 +49,15 @@ export default function InsightsPage() {
         setTopItemsData(dataWithPercentage);
       } catch (error) {
         console.log(error);
+        toast.error("Failed to fetch top items data");
+      } finally{
+        setLoading(false);
       }
     };
 
     const fetchTopCustomersData = async () => {
       try {
+        setLoading(true);
         const response = await axiosInstance.get("/insights/get-customers");
         const data = response.data;
         const total = data.reduce((sum, item) => sum + item.moneySpent, 0);
@@ -56,6 +68,9 @@ export default function InsightsPage() {
         setTopCustomersData(dataWithPercentage);
       } catch (error) {
         console.log(error);
+        toast.error("Failed to fetch top employees data");
+      } finally{
+        setLoading(false);
       }
     };
 
@@ -63,37 +78,6 @@ export default function InsightsPage() {
     fetchTopItemsData();
     fetchTopCustomersData();
   }, []);
-
-  // const monthlySalesData = [
-  //   { month: 'Jan', amount: 45000 },
-  //   { month: 'Feb', amount: 52000 },
-  //   { month: 'Mar', amount: 48000 },
-  //   { month: 'Apr', amount: 61000 },
-  //   { month: 'May', amount: 55000 },
-  //   { month: 'Jun', amount: 67000 },
-  //   { month: 'Jul', amount: 72000 },
-  //   { month: 'Aug', amount: 65000 },
-  //   { month: 'Sep', amount: 59000 },
-  //   { month: 'Oct', amount: 78000 },
-  //   { month: 'Nov', amount: 82000 },
-  //   { month: 'Dec', amount: 95000 }
-  // ];
-
-  // const topItemsData = [
-  //   { name: 'Pen', value: 1250, percentage: 28 },
-  //   { name: 'Pencil', value: 980, percentage: 22 },
-  //   { name: 'Paper', value: 850, percentage: 19 },
-  //   { name: 'Rubber', value: 720, percentage: 16 },
-  //   { name: 'Scale', value: 650, percentage: 15 }
-  // ];
-
-  // const topCustomersData = [
-  //   { name: 'Rahul Mehta', value: 3200, percentage: 25 },
-  //   { name: 'Amit Patel', value: 2100, percentage: 20 },
-  //   { name: 'Vikram Singh', value: 1680, percentage: 18 },
-  //   { name: 'Rajesh Kumar', value: 1250, percentage: 17 },
-  //   { name: 'Anita Desai', value: 920, percentage: 20 }
-  // ];
 
   const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
 
@@ -114,6 +98,12 @@ export default function InsightsPage() {
   const renderLabel = (entry) => {
     return `${entry.percentage}%`;
   };
+
+  if(loading){
+    return(
+      <LoadingComponent message={"Loading insights"}/>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 p-4">

@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import axiosInstance from "../../lib/axios";
 import EmployeeModal from "../../components/EmployeeModal";
+import toast from "react-hot-toast";
+import LoadingComponent from "../../components/LoadingComponent";
 
 // Dashboard/Analytics Page Component
 export default function DashboardPage() {
@@ -25,6 +27,7 @@ export default function DashboardPage() {
 
   const [deletingId, setDeletingId] = useState(null);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [isOpen, setIsOpen] = useState(false);
   const [editing,setEditing] = useState(null)
@@ -36,6 +39,7 @@ export default function DashboardPage() {
       setUsersData(usersData.filter((user) => user._id !== id));
     } catch (error) {
       console.log(error);
+      toast.error("Failed to delete user");
     } finally {
       setIsDeleteLoading(false);
       setDeletingId(null);
@@ -45,14 +49,25 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
+        setLoading(true);
         const response = await axiosInstance.get("/admin/get-users");
         setUsersData(response.data);
       } catch (error) {
         console.log(error);
+        toast.error("Failed to fetch users");
+      } finally{
+        setLoading(false);
       }
     };
     fetchUsers();
-  }, [isOpen]);
+  }, [editing]);
+
+
+  if(loading){
+    return(
+      <LoadingComponent message="Fetching Users"/>
+    )
+  }
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -135,10 +150,10 @@ export default function DashboardPage() {
               <h2 className="text-lg font-semibold text-gray-900 mb-6">
                 All Employees
               </h2>
-              <div className="flex flex-row items-center gap-1 px-2 mb-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+              <div className="flex  flex-row items-center gap-1 px-2 mb-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
                 <Plus className="w-5 h-5" />
-                <button onClick={() => setIsOpen(true)} classnmae="">
-                  <span>Add employee</span>
+                <button onClick={() => setIsOpen(true)} classname="">
+                  <span className="cursor-pointer">Add employee</span>
                 </button>
               </div>
             </div>

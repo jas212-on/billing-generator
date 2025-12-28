@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { FileText, Shield, Users, CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../lib/axios';
+import toast from 'react-hot-toast';
+import LoadingComponent from '../components/LoadingComponent';
 
 export default function InvoiceLanding() {
   const [hoveredCard, setHoveredCard] = useState(null);
@@ -9,6 +11,8 @@ export default function InvoiceLanding() {
   const [loginType, setLoginType] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
 
   
 
@@ -16,11 +20,14 @@ export default function InvoiceLanding() {
   useEffect(() => {
     const fetchRole = async () => {
       try {
+        setLoading(true);
         const response = await axiosInstance.get("/role");
         console.log(response.data.role);
         setRole(response.data.role);
       } catch (error) {
         console.error(error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -30,9 +37,9 @@ export default function InvoiceLanding() {
   const navigate = useNavigate();
 
   const handleLoginClick = (type) => {
-    if(role==="admin"){
+    if(role==="admin" && type==="admin"){
       navigate('/admin/dashboard');
-    }else if(role==="user"){
+    }else if(role==="user" && type==="employee"){
       navigate('/user/dashboard');
     }else{
       setLoginType(type);
@@ -47,23 +54,33 @@ export default function InvoiceLanding() {
     
           if(loginType==="admin"){
             try {
+                setLoginLoading(true);
                 const response = await axiosInstance.post('/auth/admin/signin', {email, password});
                 console.log(response.data);
                 navigate('/admin/dashboard');
             } catch (error) {
                 console.log(error);
+                toast.error("Invalid credentials");
+            } finally {
+                setLoginLoading(false);
             }
           }
     
            if(loginType==="employee"){
             try {
+                setLoginLoading(true);
                 const response = await axiosInstance.post('/auth/user/signin', {email, password});
                 console.log(response.data);
                 navigate('/user/dashboard');
             } catch (error) {
                 console.log(error);
+                toast.error("Invalid credentials");
+            } finally {
+                setLoginLoading(false);
             }
           }
+        } else {
+            toast.error("Please enter email and password");
         }
     
   };
@@ -73,6 +90,12 @@ export default function InvoiceLanding() {
     setEmail('');
     setPassword('');
   };
+
+  if(loading){
+    return(
+      <LoadingComponent message="Please wait while we prepare things for you"/>
+    );
+  }
 
   if (showLogin) {
     return (
@@ -148,9 +171,9 @@ export default function InvoiceLanding() {
 
             <button
               onClick={handleLoginSubmit}
-              className={`w-full ${loginType === 'admin' ? 'bg-linear-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700' : 'bg-linear-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600'} text-white py-3 rounded-lg font-semibold transition-all duration-300 shadow-md hover:shadow-lg`}
+              className={`w-full cursor-pointer ${loginLoading? 'opacity-50 cursor-not-allowed' : ''} ${loginType === 'admin' ? 'bg-linear-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700' : 'bg-linear-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600'} text-white py-3 rounded-lg font-semibold transition-all duration-300 shadow-md hover:shadow-lg`}
             >
-              Sign In
+              {loginLoading ? "Signing In..." : "Sign In"}
             </button>
           </div>
 
@@ -252,7 +275,7 @@ export default function InvoiceLanding() {
                 
                 <button
                   onClick={() => handleLoginClick('admin')}
-                  className="w-full bg-linear-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg"
+                  className="w-full cursor-pointer bg-linear-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg"
                 >
                   Login as Admin
                   <ArrowRight className={`w-5 h-5 ml-2 transition-transform duration-300 ${hoveredCard === 'admin' ? 'translate-x-1' : ''}`} />
@@ -295,7 +318,7 @@ export default function InvoiceLanding() {
                 
                 <button
                   onClick={() => handleLoginClick('employee')}
-                  className="w-full bg-linear-to-r from-blue-400 to-blue-500 text-white py-3 rounded-lg font-semibold hover:from-blue-500 hover:to-blue-600 transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg"
+                  className="w-full cursor-pointer bg-linear-to-r from-blue-400 to-blue-500 text-white py-3 rounded-lg font-semibold hover:from-blue-500 hover:to-blue-600 transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg"
                 >
                   Login as Employee
                   <ArrowRight className={`w-5 h-5 ml-2 transition-transform duration-300 ${hoveredCard === 'employee' ? 'translate-x-1' : ''}`} />

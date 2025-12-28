@@ -154,9 +154,9 @@ const BillDetailsModal = ({ isOpen, onClose, bill }) => {
               {bill.paymentMode === "cash" && bill.balance>0 && (
                 <div className="flex justify-between items-center pt-2 border-t border-gray-200">
                   <span className="text-sm font-medium text-gray-900">
-                    Balance Left
+                    Balance
                   </span>
-                  <span className="text-red-600"  >₹{(bill.balance || 0).toFixed(2)}</span>
+                  <span className="text-blue-500"  >₹{(bill.balance || 0).toFixed(2)}</span>
                 </div>
               )}
             </div>

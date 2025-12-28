@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Plus, Trash2, Check } from "lucide-react";
 import axiosInstance from "../lib/axios";
 import OverlayLoader from "../components/OverLayLoader";
@@ -33,6 +33,8 @@ export default function BillingHome() {
   const [isProductsLoading, setIsProductsLoading] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const dropdownRef = useRef(null);
+
   useEffect(() => {
     const fetchEmployee = async () => {
       try {
@@ -49,6 +51,7 @@ export default function BillingHome() {
         setIsProductsLoading(true);
         const response = await axiosInstance.get("/products/get-products");
         setProducts(response.data);
+        setFilteredProducts(response.data);
       } catch (error) {
         console.log(error);
       } finally {
@@ -60,7 +63,22 @@ export default function BillingHome() {
     fetchProducts();
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const addProduct = () => {
+    console.log(currentProduct);
     if (
       currentProduct.name &&
       currentProduct.rate > 0 &&
@@ -68,16 +86,6 @@ export default function BillingHome() {
     ) {
       setAddedProducts([...addedProducts, { ...currentProduct }]);
       setCurrentProduct({ name: "", quantity: 1, rate: 0 });
-    }
-  };
-
-  const addLabour = () => {
-    if (currentLabour.name && currentLabour.cost > 0) {
-      setLabourCharges([
-        ...labourCharges,
-        { ...currentLabour, id: Date.now() },
-      ]);
-      setCurrentLabour({ name: "", cost: 0 });
     }
   };
 
@@ -112,16 +120,19 @@ export default function BillingHome() {
     });
 
     if (value.trim() === "") {
-      setFilteredProducts([]);
-      setShowDropdown(false);
+      setFilteredProducts(products);
+      setShowDropdown(true);
       return;
     }
 
-    const matches = products.filter((p) =>
-      p.name.toLowerCase().startsWith(value.toLowerCase())
-    );
+    if (value) {
+      const matches = products.filter((p) =>
+        p.name.toLowerCase().startsWith(value.toLowerCase())
+      );
 
-    setFilteredProducts(matches);
+      setFilteredProducts(matches);
+    }
+
     setShowDropdown(true);
   };
 
@@ -177,6 +188,14 @@ export default function BillingHome() {
       .then((response) => {
         setLoading(false);
         alert("Bill added successfully");
+        setAddedProducts([]);
+        setLabourCharges([]);
+        setCustomerInfo({
+          name: "",
+          email: "",
+          phone: "",
+        });
+        setPaymentMode("");
         downloadInvoice(response.data);
       })
       .catch((error) => {
@@ -184,14 +203,6 @@ export default function BillingHome() {
         setLoading(false);
         alert("Error adding bill");
       });
-    setAddedProducts([]);
-    setLabourCharges([]);
-    setCustomerInfo({
-      name: "",
-      email: "",
-      phone: "",
-    });
-    setPaymentMode("");
   };
 
   return (
@@ -222,7 +233,7 @@ export default function BillingHome() {
               </h2>
 
               <div className="space-y-4">
-                <div className="relative">
+                <div ref={dropdownRef} className="relative">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Product Name
                   </label>
@@ -230,6 +241,7 @@ export default function BillingHome() {
                   <input
                     type="text"
                     value={currentProduct.name}
+                    onClick={() => setShowDropdown(true)}
                     onChange={handleChange}
                     placeholder="Enter product name"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -237,14 +249,15 @@ export default function BillingHome() {
 
                   {showDropdown && filteredProducts.length > 0 && (
                     <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-lg mt-1 max-h-40 overflow-y-auto shadow-lg">
-                      {filteredProducts.map((product, index) => (
+                      {filteredProducts.map((product) => (
                         <li
-                          key={index}
+                          key={product._id}
                           onClick={() => {
                             setCurrentProduct({
                               ...currentProduct,
                               name: product.name,
                               rate: product.price,
+                              quantity: 1,
                               id: product._id,
                             });
                             setShowDropdown(false);
@@ -407,7 +420,7 @@ export default function BillingHome() {
                 <hr className="border-t-2 border-dashed border-gray-300 my-4" />
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-[50vh] overflow-y-auto">
                 {addedProducts.length === 0 && labourCharges.length === 0 ? (
                   <p className="text-center text-gray-400 py-8">
                     No items added yet
@@ -419,7 +432,7 @@ export default function BillingHome() {
                         key={product.id}
                         className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                       >
-                        <div className="flex-1">
+                        <div className="flex items-center justify-center gap-2 flex-row">
                           <p className="font-medium text-gray-900">
                             {product.name}
                           </p>

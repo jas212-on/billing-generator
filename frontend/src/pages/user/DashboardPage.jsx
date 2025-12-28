@@ -75,7 +75,7 @@ export default function UserDashboardPage() {
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-center items-center h-4 lg:h-16">
-            <h1 className="text-xl fixed top-3 lg:top-0 lg:relative font-semibold text-gray-900">History</h1>
+            <h1 className="text-xl fixed top-3 lg:top-0 lg:relative font-semibold text-gray-900">Dashboard</h1>
             <div className="w-10"></div>
           </div>
         </div>
@@ -135,19 +135,6 @@ export default function UserDashboardPage() {
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
-              >
-                <option value="all">All Status</option>
-                <option value="paid">Paid</option>
-                <option value="unpaid">Unpaid</option>
-              </select>
-            </div>
           </div>
         </div>
 
@@ -191,7 +178,7 @@ export default function UserDashboardPage() {
                 filteredBills.map((bill,idx) => (
                   <tr
                     key={bill._id}
-                    className="border-b border-gray-100 hover:bg-gray-50"
+                    className="border-b cursor-pointer border-gray-100 hover:bg-gray-50"
                     onClick={() => handleViewDetails(bill)}
                   >
                     <td className="py-4 px-4">
@@ -234,7 +221,8 @@ export default function UserDashboardPage() {
             filteredBills.map((bill,idx) => (
               <div
                 key={bill._id}
-                className="border border-gray-200 rounded-lg p-4"
+                className="border cursor-pointer border-gray-200 rounded-lg p-4"
+                onClick={() => handleViewDetails(bill)}
               >
                 <div className="flex justify-between items-start mb-3">
                   <div>
